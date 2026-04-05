@@ -1,0 +1,71 @@
+function init(){await checkAPI();if(apiOnline){await loadStats();await loadPacientes()}else{loadLocal()}}
+
+async function checkAPI(){
+try{const r=await fetch(API_URL+’/health’);if(r.ok){document.getElementById(‘apiDot’).classList.add(‘online’);document.getElementById(‘apiStatus’).textContent=‘Conectado’;apiOnline=true}else throw 0}
+catch(e){document.getElementById(‘apiDot’).classList.remove(‘online’);document.getElementById(‘apiStatus’).textContent=‘Offline’;loadLocal()}
+}
+
+async function loadStats(){
+try{const r=await fetch(API_URL+’/estatisticas’);const s=await r.json();
+document.getElementById(‘statTotal’).textContent=s.total_pacientes||0;
+document.getElementById(‘statRPA’).textContent=s.pacientes_na_rpa||0;
+document.getElementById(‘countPre’).textContent=s.avaliacoes_pre||0;
+document.getElementById(‘countIntra’).textContent=s.fichas_intra||0;
+document.getElementById(‘countRPA’).textContent=s.registros_rpa||0}catch(e){}
+}
+
+async function loadPacientes(){try{const r=await fetch(API_URL+’/pacientes?limit=20’);pacientes=await r.json();render()}catch(e){render()}}
+function loadLocal(){const s=localStorage.getItem(‘UNIANEST_PACIENTES’);pacientes=s?JSON.parse(s):[];document.getElementById(‘statTotal’).textContent=pacientes.length;render()}
+
+function render(){
+const c=document.getElementById(‘patientList’);
+if(!pacientes.length){c.innerHTML=’<div class="empty-state"><div class="empty-state-icon">📋</div><p>Nenhum paciente</p></div>’;return}
+c.innerHTML=pacientes.map(p=>`<div class="patient-item" onclick="selPac(${p.id})"><div class="patient-avatar">${(p.nome||'?')[0].toUpperCase()}</div><div class="patient-info"><div class="patient-name">${p.nome||'-'}</div><div class="patient-details">${p.prontuario||'-'} • ${p.idade?p.idade+'a':'-'}</div></div><div class="patient-badges"><div class="patient-badge pre ${p.tem_pre_anestesia?'':'inactive'}">📋</div><div class="patient-badge intra ${p.tem_ficha_intra?'':'inactive'}">🩺</div><div class="patient-badge rpa ${p.tem_rpa?'':'inactive'}">🏥</div></div></div>`).join(’’)
+}
+
+async function buscarPacientes(){
+const t=document.getElementById(‘searchInput’).value.trim().toLowerCase();
+if(!t){if(apiOnline)await loadPacientes();else loadLocal();return}
+if(apiOnline){try{const r=await fetch(API_URL+’/pacientes?busca=’+encodeURIComponent(t));pacientes=await r.json();render()}catch(e){}}
+else{const all=JSON.parse(localStorage.getItem(‘UNIANEST_PACIENTES’)||’[]’);pacientes=all.filter(p=>(p.nome||’’).toLowerCase().includes(t)||(p.prontuario||’’).includes(t));render()}
+}
+
+function abrirModulo(m){localStorage.setItem(‘UNIANEST_MODULO_ATUAL’,m);location.href=URLS[m]}
+function selPac(id){localStorage.setItem(‘UNIANEST_PACIENTE_ID’,id);toast(‘Paciente #’+id+’ selecionado’,‘success’)}
+function novoPaciente(){document.getElementById(‘modalNovo’).classList.add(‘show’)}
+function fecharModal(){document.getElementById(‘modalNovo’).classList.remove(‘show’)}
+
+async function criarPaciente(){
+const nome=document.getElementById(‘novoNome’).value.trim();
+const pront=document.getElementById(‘novoPront’).value.trim();
+const idade=document.getElementById(‘novaIdade’).value;
+const peso=document.getElementById(‘novoPeso’).value;
+const altura=document.getElementById(‘novaAltura’).value;
+if(!nome){toast(‘Preencha o nome’,‘error’);return}
+const d={nome,prontuario:pront||null,idade:idade?+idade:null,peso:peso?+peso:null,altura:altura?+altura:null};
+
+```
+if(apiOnline){
+    try{
+        const r=await fetch(API_URL+'/pacientes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});
+        if(r.ok){
+            const p=await r.json();
+            // UNIFICAÇÃO: Salvar dados compartilhados
+            localStorage.setItem('UNIANEST_PACIENTE_DADOS',JSON.stringify({id:p.id,nome:d.nome,prontuario:d.prontuario,peso:d.peso,altura:d.altura,idade:d.idade,created_at:new Date().toISOString()}));
+            toast('Paciente criado!','success');fecharModal();limpar();await loadPacientes();await loadStats()
+        }else toast('Erro ao criar','error')
+    }catch(e){toast('Erro de conexão','error')}
+}else{
+    d.id=Date.now();d.created_at=new Date().toISOString();d.tem_pre_anestesia=false;d.tem_ficha_intra=false;d.tem_rpa=false;
+    const lista=JSON.parse(localStorage.getItem('UNIANEST_PACIENTES')||'[]');
+    lista.unshift(d);localStorage.setItem('UNIANEST_PACIENTES',JSON.stringify(lista));
+    // UNIFICAÇÃO: Salvar dados compartilhados
+    localStorage.setItem('UNIANEST_PACIENTE_DADOS',JSON.stringify({id:d.id,nome:d.nome,prontuario:d.prontuario,peso:d.peso,altura:d.altura,idade:d.idade,created_at:d.created_at}));
+    toast('Salvo local','success');fecharModal();limpar();loadLocal()
+}
+```
+
+}
+
+async function criarEIniciar(m){await criarPaciente();if(pacientes.length){localStorage.setItem(‘UNIANEST_PACIENTE_ID’,pacientes[0].id);abrirModulo(m)}}
+function limpar(){[‘novoNome’,‘novoPront’,‘novaIdade’,‘novoPeso’,‘novaAltura’].
