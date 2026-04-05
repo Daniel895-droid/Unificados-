@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0f766e">
+    <title>UNIANEST - Pré-Anestesia</title>
+    <style>
+        :root{--primary:#0f766e;--primary-light:#14b8a6;--primary-bg:#f0fdfa;--danger:#ef4444;--danger-light:#fef2f2;--success:#22c55e;--success-light:#f0fdf4;--warning:#f59e0b;--warning-light:#fffbeb;--gray-50:#f9fafb;--gray-100:#f3f4f6;--gray-200:#e5e7eb;--gray-300:#d1d5db;--gray-400:#9ca3af;--gray-500:#6b7280;--gray-600:#4b5563;--gray-700:#374151;--gray-800:#1f2937;--white:#fff;--radius:12px;--radius-sm:8px;--safe-top:env(safe-area-inset-top);--safe-bottom:env(safe-area-inset-bottom)}
+        *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+        html,body{font-family:-apple-system,sans-serif;background:var(--gray-100);color:var(--gray-800);line-height:1.5}
+        body{padding-top:var(--safe-top);padding-bottom:calc(80px + var(--safe-bottom))}
+        .splash{position:fixed;inset:0;background:linear-gradient(135deg,#0f766e,#064e3b);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999}
+        .splash.hidden{opacity:0;visibility:hidden;transition:all .5s}
+        .splash-logo{width:140px;height:140px;background:rgba(255,255,255,.15);border-radius:35px;display:flex;align-items:center;justify-content:center;margin-bottom:24px;font-size:64px}
+        .splash-title{font-size:2rem;font-weight:800;color:#fff;letter-spacing:2px;margin-bottom:8px}
+        .splash-sub{color:rgba(255,255,255,.8);margin-bottom:40px}
+        .splash-btn{padding:16px 60px;background:#fff;color:#0f766e;font-size:1.1rem;font-weight:700;border:none;border-radius:50px;cursor:pointer}
+        .splash-btn:active{transform:scale(.95)}
+        .splash-ver{position:absolute;bottom:30px;color:rgba(255,255,255,.5);font-size:.75rem}
+        .header{position:fixed;top:0;left:0;right:0;z-index:100;background:linear-gradient(135deg,var(--primary),#0d5d56);padding:calc(var(--safe-top)+10px) 16px 10px;color:#fff}
+        .header-content{display:flex;align-items:center;justify-content:space-between;max-width:800px;margin:0 auto}
+        .header h1{font-size:1.125rem;font-weight:700}
+        .header-btns{display:flex;gap:8px}
+        .header-btn{width:38px;height:38px;border-radius:50%;border:none;background:rgba(255,255,255,.15);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px}
+        .header-btn:active{background:rgba(255,255,255,.25)}
+        .api-bar{display:flex;align-items:center;justify-content:center;gap:6px;padding:6px;background:var(--gray-200);font-size:.75rem;margin-bottom:12px;border-radius:20px;max-width:200px;margin:12px auto}
+        .api-dot{width:8px;height:8px;border-radius:50%;background:var(--danger)}
+        .api-dot.online{background:var(--success)}
+        .main{padding:calc(70px + var(--safe-top)) 12px 20px;max-width:800px;margin:0 auto}
+        .section{background:var(--white);border-radius:16px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.1);overflow:hidden;border:1px solid var(--gray-200)}
+        .section-header{display:flex;align-items:center;justify-content:space-between;padding:16px;background:linear-gradient(135deg,var(--primary-bg),var(--white));border-bottom:1px solid var(--gray-200);cursor:pointer}
+        .section-title-group{display:flex;align-items:center;gap:12px}
+        .section-number{width:32px;height:32px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.875rem}
+        .section-number.done{background:var(--success)}
+        .section-title{font-size:1rem;font-weight:600}
+        .section-content{display:none;padding:16px}
+        .section.open .section-content{display:block}
+        .form-group{margin-bottom:16px}
+        .form-label{display:block;font-size:.875rem;font-weight:600;color:var(--gray-700);margin-bottom:6px}
+        .form-input{width:100%;padding:12px 14px;border:2px solid var(--gray-200);border-radius:var(--radius-sm);font-size:1rem;color:var(--gray-800);background:var(--white)}
+        .form-input:focus{outline:none;border-color:var(--primary)}
+        .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+        .radio-group{display:flex;flex-wrap:wrap;gap:8px}
+        .radio-item{position:relative}
+        .radio-item input{position:absolute;opacity:0}
+        .radio-label{display:flex;align-items:center;justify-content:center;padding:10px 16px;background:var(--gray-50);border:2px solid var(--gray-200);border-radius:var(--radius-sm);font-size:.875rem;font-weight:500;cursor:pointer}
+        .radio-item input:checked+.radio-label{background:var(--primary);border-color:var(--primary);color:#fff}
+        .checkbox-group{display:flex;flex-wrap:wrap;gap:8px}
+        .checkbox-item{position:relative}
+        .checkbox-item input{position:absolute;opacity:0}
+        .checkbox-label{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--gray-50);border:2px solid var(--gray-200);border-radius:var(--radius-sm);font-size:.875rem;cursor:pointer}
+        .checkbox-item input:checked+.checkbox-label{background:var(--primary-bg);border-color:var(--primary);color:var(--primary)}
+        .subsection{background:var(--gray-50);border-radius:var(--radius-sm);padding:14px;margin-bottom:12px;border:1px solid var(--gray-200)}
+        .subsection-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+        .subsection-title{font-size:.9375rem;font-weight:600;color:var(--primary)}
+        .toggle-group{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--gray-100)}
+        .toggle-label{font-size:.9375rem;color:var(--gray-700);font-weight:500}
+        .toggle{position:relative;width:52px;height:28px}
+        .toggle input{opacity:0;width:0;height:0}
+        .toggle-slider{position:absolute;cursor:pointer;inset:0;background:var(--gray-300);border-radius:28px;transition:.3s}
+        .toggle-slider::before{content:'';position:absolute;width:22px;height:22px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s}
+        .toggle input:checked+.toggle-slider{background:var(--primary)}
+        .toggle input:checked+.toggle-slider::before{transform:translateX(24px)}
+        .asa-grid{display:grid;gap:8px}
+        .asa-item{position:relative}
+        .asa-item input{position:absolute;opacity:0}
+        .asa-label{display:flex;align-items:center;gap:12px;padding:14px;background:var(--gray-50);border:2px solid var(--gray-200);border-radius:var(--radius-sm);cursor:pointer}
+        .asa-item input:checked+.asa-label{background:var(--primary-bg);border-color:var(--primary)}
+        .asa-number{width:36px;height:36px;border-radius:50%;background:var(--gray-200);display:flex;align-items:center;justify-content:center;font-weight:700}
+        .asa-item input:checked+.asa-label .asa-number{background:var(--primary);color:#fff}
+        .asa-text{font-size:.875rem}
+        .asa-text strong{display:block;margin-bottom:2px}
+        .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--white);border-top:1px solid var(--gray-200);padding:12px 16px calc(12px + var(--safe-bottom));display:flex;gap:12px}
+        .nav-btn{flex:1;padding:14px;border-radius:var(--radius-sm);font-size:.9375rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;border:none}
+        .nav-btn.secondary{background:var(--gray-100);color:var(--gray-700)}
+        .nav-btn.primary{background:linear-gradient(135deg,var(--primary),#0d5d56);color:#fff}
+        .toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--gray-800);color:#fff;padding:14px 24px;border-radius:var(--radius);font-size:.9375rem;opacity:0;transition:all .3s;z-index:200}
+        .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+        .toast.success{background:var(--success)}
+        .toast.error{background:var(--danger)}
+        .cond{display:none;margin-top:10px;padding-top:10px;border-top:1px dashed var(--gray-300)}
+        .cond.visible{display:block}
+    </style>
+</head>
+<body>
+    <div class="splash" id="splash">
+        <div class="splash-logo">📋</div>
+        <h1 class="splash-title">UNIANEST</h1>
+        <p class="splash-sub">Avaliação Pré-Anestésica</p>
+        <button class="splash-btn" onclick="entrar()">ENTRAR</button>
+        <span class="splash-ver">v2.1.0 - Dados Compartilhados</span>
+    </div>
+    <header class="header" id="header" style="display:none">
+        <div class="header-content">
+            <h1>Pré-Anestesia</h1>
+            <div class="header-btns">
+                <button class="header-btn" onclick="location.href='index.html'" title="Início">🏠</button>
+                <button class="header-btn" onclick="novoForm()" title="Novo">+</button>
+            </div>
+        </div>
+    </header>
+    <main class="main" id="main" style="display:none">
+        <div class="api-bar"><div class="api-dot" id="apiDot"></div><span id="apiText">Verificando...</span></div>
+
+```
+    <!-- SEÇÃO 1 -->
+    <section class="section open" data-sec="1">
+        <div class="section-header" onclick="toggleSec(this)">
+            <div class="section-title-group"><span class="section-number">1</span><span class="section-title">Identificação</span></div>
+        </div>
+        <div class="section-content">
+            <div class="form-group"><label class="form-label">Nome Completo *</label><input type="text" class="form-input" id="nome"></div>
+            <div class="form-row">
+                <div class="form-group"><label class="form-label">Prontuário</label><input type="text" class="form-input" id="prontuario"></div>
+                <div class="form-group"><label class="form-label">Idade</label><input type="number" class="form-input" id="idade"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label class="form-label">Peso (kg)</label><input type="number" class="form-input" id="peso" step="0.1"></div>
+                <div class="form-group"><label class="form-label">Altura (cm)</label><input type="number" class="form-input" id="altura"></div>
+            </div>
+            <div class="form-group"><label class="form-label">Gênero</label>
+                <div class="radio-group">
+                    <label class="radio-item"><input type="radio" name="genero" value="M"><span class="radio-label">Masculino</span></label>
+                    <label class="radio-item"><input type="radio" name="genero" value="F"><span class="radio-label">Feminino</span></label>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- SEÇÃO 2 -->
+    <section class="section" data-sec="2">
+        <div class="section-header" onclick="toggleSec(this)">
+            <div class="section-title-group"><span class="section-number">2</span><span class="section-title">Procedimento</span></div>
+        </div>
+        <div class="section-content">
+            <div class="form-group"><label class="form-label">Cirurgia Proposta *</label><input type="text" class="form-input" id="cirurgia"></div>
+            <div class="form-group"><label class="form-label">Diagnóstico</label><input type="text" class="form-input" id="diagnostico"></div>
+        </div>
+    </section>
+    
+    <!-- SEÇÃO 3 -->
+    <section class="section" data-sec="3">
+        <div class="section-header" onclick="toggleSec(this)">
+            <div class="section-title-group"><span class="section-number">3</span><span class="section-title">História Clínica</span></div>
+        </div>
+        <div class="section-content">
+            <div class="subsection">
+                <div class="subsection-header"><span class="subsection-title">❤️ Cardiovascular</span></div>
+                <div class="checkbox-group" id="cardioGroup">
+                    <label class="checkbox-item"><input type="checkbox" name="cardio" value="HAS"><span class="checkbox-label">HAS</span></label>
+                    <label class="checkbox-item"><input type="checkbox" name="cardio" value="Arritmia"><span class="checkbox-label">Arritmia</span></label>
+                    <label class="checkbox-item"><input type="checkbox" name="cardio" value="Coronariopatia"><span class="checkbox-label">Coronariopatia</span></label>
+                    <label class="checkbox-item"><input type="checkbox" name="cardio" value="ICC"><span class="checkbox-label">ICC</span></label>
+                </div>
+            </div>
+            <div class="subsection">
+                <div class="subsection-header"><span class="subsection-title">🫁 Respiratório</span></div>
+                <div class="checkbox-group">
+                    <label class="checkbox-item"><input type="checkbox" name="resp" value="Asma"><span class="checkbox-label">Asma</span></label>
+                    <label class="checkbox-item"><input type="checkbox" name="resp" value="DPOC"><span class="checkbox-label">DPOC</span></label>
+                    <label class="checkbox-item"><input type="checkbox" name="resp" value="Apneia"><span class="checkbox-label">Apneia</span></label>
+                </div>
+            </div>
+            <div class="subsection">
+                <div class="subsection-header"><span class="subsection-title">🔬 Endócrino</span></div>
+                <div class="checkbox-group">
+                    <label class="checkbox-item"><input type="checkbox" name="endo" value="DM"><span class="checkbox-label">Diabetes</span></label>
+                    <label class="checkbox-item"><input type="checkbox" name="endo" value="Hipotireoidismo"><span class="checkbox-label">Hipotireoidismo</span></label>
+                    <label class="checkbox-item"><input type="checkbox" name="endo" value="Obesidade"><span class="checkbox-label">Obesidade</span></label>
+                </div>
+            </div>
+            <div class="subsection">
+                <div class="subsection-header"><span class="subsection-title">⚠️ Alergias</span></div>
+                <div class="radio-group" style="margin-bottom:10px">
+                    <label class="radio-item"><input type="radio" name="alergia" value="N" onchange="toggleCond('alergiaObs',false)"><span class="radio-label">Não</span></label>
+                    <label class="radio-item"><input type="radio" name="alergia" value="S" onchange="toggleCond('alergiaObs',true)"><span class="radio-label">Sim</span></label>
+                </div>
+                <div class="cond" id="alergiaObs"><textarea class="form-input" rows="2" id="alergiaDesc" placeholder="Descrever alergias"></textarea></div>
+            </div>
+            <div class="subsection">
+                <div class="subsection-header"><span class="subsection-title">💊 Medicamentos</span></div>
+                <div class="radio-group" style="margin-bottom:10px">
+                    <label class="radio-item"><input type="radio" name="med" value="N" onchange="toggleCond('medObs',false)"><span class="radio-label">Não</span></label>
+                    <label class="radio-item"><input type="radio" name="med" value="S" onchange="toggleCond('medObs',true)"><span class="radio-label">Sim</span></label>
+                </div>
+                <div class="cond" id="medObs"><textarea class="form-input" rows="2" id="medDesc" placeholder="Listar medicamentos"></textarea></div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- SEÇÃO 4 -->
+    <section class="section" data-sec="4">
+        <div class="section-header" onclick="toggleSec(this)">
+            <div class="section-title-group"><span class="section-number">4</span><span class="section-title">Via Aérea</span></div>
+        </div>
+        <div class="section-content">
+            <div class="form-group"><label class="form-label">Mallampati</label>
+                <div class="radio-group">
+                    <label class="radio-item"><input type="radio" name="mallampati" value="1"><span class="radio-label">I</span></label>
+                    <label class="radio-item"><input type="radio" name="mallampati" value="2"><span class="radio-label">II</span></label>
+                    <label class="radio-item"><input type="radio" name="mallampati" value="3"><span class="radio-label">III</span></label>
+                    <label class="radio-item"><input type="radio" name="mallampati" value="4"><span class="radio-label">IV</span></label>
+                </div>
+            </div>
+            <div class="toggle-group"><span class="toggle-label">Previsão de VAD?</span><label class="toggle"><input type="checkbox" id="vad"><span class="toggle-slider"></span></label></div>
+        </div>
+    </section>
+    
+    <!-- SEÇÃO 5 -->
+    <section class="section" data-sec="5">
+        <div class="section-header" onclick="toggleSec(this)">
+            <div class="section-title-group"><span class="section-number">5</span><span class="section-title">Classificação ASA</span></div>
+        </div>
+        <div class="section-content">
+            <div class="asa-grid">
+                <label class="asa-item"><input type="radio" name="asa" value="1"><span class="asa-label"><span class="asa-number">I</span><span class="asa-text"><strong>ASA I</strong>Saudável</span></span></label>
+                <label class="asa-item"><input type="radio" name="asa" value="2"><span class="asa-label"><span class="asa-number">II</span><span class="asa-text"><strong>ASA II</strong>Doença leve</span></span></label>
+                <label class="asa-item"><input type="radio" name="asa" value="3"><span class="asa-label"><span class="asa-number">III</span><span class="asa-text"><strong>ASA III</strong>Doença grave</span></span></label>
+                <label class="asa-item"><input type="radio" name="asa" value="4"><span class="asa-label"><span class="asa-number">IV</span><span class="asa-text"><strong>ASA IV</strong>Ameaça à vida</span></span></label>
+                <label class="asa-item"><input type="radio" name="asa" value="5"><span class="asa-label"><span class="asa-number">V</span><span class="asa-text"><strong>ASA V</strong>Moribundo</span></span></label>
+            </div>
+            <div class="toggle-group" style="margin-top:12px"><span class="toggle-label">Emergência (E)?</span><label class="toggle"><input type="checkbox" id="asaE"><span class="toggle-slider"></span></label></div>
+        </div>
+    </section>
+    
+    <!-- SEÇÃO 6 -->
+    <section class="section" data-sec="6">
+        <div class="section-header" onclick="toggleSec(this)">
+            <div class="section-title-group"><span class="section-number">6</span><span class="section-title">Técnica Proposta</span></div>
+        </div>
+        <div class="section-content">
+            <div class="checkbox-group">
+                <label class="checkbox-item"><input type="checkbox" name="tecnica" value="Geral"><span class="checkbox-label">Geral</span></label>
+                <label class="checkbox-item"><input type="checkbox" name="tecnica" value="Raqui"><span class="checkbox-label">Raqui</span></label>
+                <label class="checkbox-item"><input type="checkbox" name="tecnica" value="Peridural"><span class="checkbox-label">Peridural</span></label>
+                <label class="checkbox-item"><input type="checkbox" name="tecnica" value="BloqPerif"><span class="checkbox-label">Bloq. Periférico</span></label>
+                <label class="checkbox-item"><input type="checkbox" name="tecnica" value="Sedacao"><span class="checkbox-label">Sedação</span></label>
+            </div>
+        </div>
+    </section>
+    
+    <!-- SEÇÃO 7 -->
+    <section class="section" data-sec="7">
+        <div class="section-header" onclick="toggleSec(this)">
+            <div class="section-title-group"><span class="section-number">7</span><span class="section-title">Liberação</span></div>
+        </div>
+        <div class="section-content">
+            <div class="form-group"><label class="form-label">Status</label>
+                <div class="radio-group">
+                    <label class="radio-item"><input type="radio" name="liberacao" value="L"><span class="radio-label" style="background:var(--success-light);border-color:var(--success);color:var(--success)">✓ Liberado</span></label>
+                    <label class="radio-item"><input type="radio" name="liberacao" value="R"><span class="radio-label" style="background:var(--warning-light);border-color:var(--warning);color:var(--warning)">⏳ Reavaliação</span></label>
+                    <label class="radio-item"><input type="radio" name="liberacao" value="S"><span class="radio-label" style="background:var(--danger-light);border-color:var(--danger);color:var(--danger)">✕ Suspenso</span></label>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label class="form-label">Data</label><input type="date" class="form-input" id="dataAval"></div>
+                <div class="form-group"><label class="form-label">Médico</label><input type="text" class="form-input" id="medico"></div>
+            </div>
+            <div class="form-group"><label class="form-label">CRM</label><input type="text" class="form-input" id="crm"></div>
+        </div>
+    </section>
+</main>
+<nav class="bottom-nav" id="bottomNav" style="display:none">
+    <button class="nav-btn secondary" onclick="limpar()">🗑️ Limpar</button>
+    <button class="nav-btn primary" onclick="salvar()">💾 Salvar</button>
+</nav>
+<div class="toast" id="toast"></div>
+```
+
+<script>
+const API_URL=localStorage.getItem('UNIANEST_API_URL')||'http://localhost:8000';
+let apiOnline=false,currentPacienteId=null,currentPreId=null;
+
+function entrar(){document.getElementById('splash').classList.add('hidden');document.getElementById('header').style.display='block';document.getElementById('main').style.display='block';document.getElementById('bottomNav').style.display='flex';init()}
+
+async function init(){
+    await checkAPI();
+    const id=localStorage.getItem('UNIANEST_PACIENTE_ID');
+    if(id&&apiOnline)await carregarPaciente(id);
+    document.getElementById('dataAval').value=new Date().toISOString().split('T')[0];
+}
+
+async function checkAPI(){
+    try{const r=await fetch(API_URL+'/health');if(r.ok){document.getElementById('apiDot').classList.add('online');document.getElementById('apiText').textContent='Conectado';apiOnline=true}else throw 0}
+    catch(e){document.getElementById('apiText').textContent='Offline'}
+}
+
+async function carregarPaciente(id){
+    try{
+        const r=await fetch(API_URL+'/pacientes/'+id);
+        if(r.ok){
+            const p=await r.json();currentPacienteId=p.id;
+            document.getElementById('nome').value=p.nome||'';
+            document.getElementById('prontuario').value=p.prontuario||'';
+            document.getElementById('idade').value=p.idade||'';
+            document.getElementById('peso').value=p.peso||'';
+            document.getElementById('altura').value=p.altura||'';
+            if(p.genero)setRadio('genero',p.genero);
+            if(p.pre_anestesia){currentPreId=p.pre_anestesia.id;preencherPre(p.pre_anestesia)}
+            toast('Paciente carregado','success');
+        }
+    }catch(e){console.error(e)}
+}
+
+function preencherPre(d){
+    if(d.cirurgia_proposta)document.getElementById('cirurgia').value=d.cirurgia_proposta;
+    if(d.diagnostico)document.getElementById('diagnostico').value=d.diagnostico;
+    if(d.cardiopatias)setChecks('cardio',d.cardiopatias);
+    if(d.pneumopatias)setChecks('resp',d.pneumopatias);
+    if(d.endocrinopatias)setChecks('endo',d.endocrinopatias);
+    if(d.tem_alergia){setRadio('alergia','S');toggleCond('alergiaObs',true)}
+    if(d.alergias_descricao)document.getElementById('alergiaDesc').value=d.alergias_descricao;
+    if(d.usa_medicamentos){setRadio('med','S');toggleCond('medObs',true)}
+    if(d.medicamentos_descricao)document.getElementById('medDesc').value=d.medicamentos_descricao;
+    if(d.mallampati)setRadio('mallampati',String(d.mallampati));
+    if(d.previsao_vad)document.getElementById('vad').checked=true;
+    if(d.asa)setRadio('asa',String(d.asa));
+    if(d.asa_emergencia)document.getElementById('asaE').checked=true;
+    if(d.tecnica_proposta)setChecks('tecnica',d.tecnica_proposta);
+    if(d.status_liberacao)setRadio('liberacao',d.status_liberacao);
+    if(d.data_avaliacao)document.getElementById('dataAval').value=d.data_avaliacao;
+    if(d.medico_nome)document.getElementById('medico').value=d.medico_nome;
+    if(d.medico_crm)document.getElementById('crm').value=d.medico_crm;
+}
+
+function coletarDados(){
+    const gV=id=>document.getElementById(id)?.value||'';
+    const gR=n=>document.querySelector(`input[name="${n}"]:checked`)?.value||'';
+    const gC=n=>Array.from(document.querySelectorAll(`input[name="${n}"]:checked`)).map(c=>c.value);
+    return{
+        nome:gV('nome'),prontuario:gV('prontuario'),idade:+gV('idade')||null,peso:+gV('peso')||null,altura:+gV('altura')||null,genero:gR('genero'),
+        cirurgia_proposta:gV('cirurgia'),diagnostico:gV('diagnostico'),
+        cardiopatias:gC('cardio'),pneumopatias:gC('resp'),endocrinopatias:gC('endo'),
+        tem_alergia:gR('alergia')==='S',alergias_descricao:gV('alergiaDesc'),
+        usa_medicamentos:gR('med')==='S',medicamentos_descricao:gV('medDesc'),
+        mallampati:+gR('mallampati')||null,previsao_vad:document.getElementById('vad').checked,
+        asa:+gR('asa')||null,asa_emergencia:document.getElementById('asaE').checked,
+        tecnica_proposta:gC('tecnica'),status_liberacao:gR('liberacao'),
+        data_avaliacao:gV('dataAval'),medico_nome:gV('medico'),medico_crm:gV('crm')
+    }
+}
+
+async function salvar(){
+    const d=coletarDados();
+    if(!d.nome){toast('Preencha o nome','error');return}
+    
+    if(apiOnline){
+        try{
+            // Criar/atualizar paciente
+            let pacId=currentPacienteId;
+            const pacData={nome:d.nome,prontuario:d.prontuario,idade:d.idade,peso:d.peso,altura:d.altura,genero:d.genero};
+            if(!pacId){
+                const rp=await fetch(API_URL+'/pacientes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(pacData)});
+                if(rp.ok){const p=await rp.json();pacId=p.id;currentPacienteId=pacId}else throw new Error('Erro paciente')
+            }else{
+                await fetch(API_URL+'/pacientes/'+pacId,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(pacData)})
+            }
+            // Criar/atualizar pré
+            const preData={paciente_id:pacId,cirurgia_proposta:d.cirurgia_proposta,diagnostico:d.diagnostico,cardiopatias:d.cardiopatias,pneumopatias:d.pneumopatias,endocrinopatias:d.endocrinopatias,tem_alergia:d.tem_alergia,alergias_descricao:d.alergias_descricao,usa_medicamentos:d.usa_medicamentos,medicamentos_descricao:d.medicamentos_descricao,mallampati:d.mallampati,previsao_vad:d.previsao_vad,asa:d.asa,asa_emergencia:d.asa_emergencia,tecnica_proposta:d.tecnica_proposta,status_liberacao:d.status_liberacao,data_avaliacao:d.data_avaliacao,medico_nome:d.medico_nome,medico_crm:d.medico_crm};
+            let rPre;
+            if(currentPreId){rPre=await fetch(API_URL+'/pre-anestesia/'+pacId,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(preData)})}
+            else{rPre=await fetch(API_URL+'/pre-anestesia',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(preData)})}
+            if(!rPre.ok)throw new Error('Erro pré');
+            const pre=await rPre.json();currentPreId=pre.id;
+            
+            // UNIFICAÇÃO: Salvar dados compartilhados para Intra e RPA
+            localStorage.setItem('UNIANEST_PACIENTE_DADOS',JSON.stringify({
+                id:pacId,nome:d.nome,prontuario:d.prontuario,peso:d.peso,altura:d.altura,idade:d.idade,genero:d.genero,
+                asa:d.asa,asa_emergencia:d.asa_emergencia,tem_alergia:d.tem_alergia,alergias_descricao:d.alergias_descricao,
+                usa_medicamentos:d.usa_medicamentos,medicamentos_descricao:d.medicamentos_descricao,
+                cardiopatias:d.cardiopatias,pneumopatias:d.pneumopatias,endocrinopatias:d.endocrinopatias,
+                mallampati:d.mallampati,previsao_vad:d.previsao_vad,
+                cirurgia_proposta:d.cirurgia_proposta,diagnostico:d.diagnostico,tecnica_proposta:d.tecnica_proposta,
+                status_liberacao:d.status_liberacao,updated_at:new Date().toISOString()
+            }));
+            toast('Salvo com sucesso!','success');
+        }catch(e){console.error(e);toast('Erro: '+e.message,'error');salvarLocal(d)}
+    }else{salvarLocal(d)}
+}
+
+function salvarLocal(d){
+    d.id=currentPreId||Date.now();d._local=true;
+    const lista=JSON.parse(localStorage.getItem('UNIANEST_PRE_LOCAL')||'[]');
+    const idx=lista.findIndex(p=>p.id===d.id);
+    if(idx>=0)lista[idx]=d;else lista.unshift(d);
+    localStorage.setItem('UNIANEST_PRE_LOCAL',JSON.stringify(lista));
+    // UNIFICAÇÃO: Salvar dados compartilhados
+    localStorage.setItem('UNIANEST_PACIENTE_DADOS',JSON.stringify({
+        id:d.id,nome:d.nome,prontuario:d.prontuario,peso:d.peso,altura:d.altura,idade:d.idade,
+        asa:d.asa,asa_emergencia:d.asa_emergencia,tem_alergia:d.tem_alergia,alergias_descricao:d.alergias_descricao,
+        cardiopatias:d.cardiopatias,pneumopatias:d.pneumopatias,endocrinopatias:d.endocrinopatias,
+        mallampati:d.mallampati,previsao_vad:d.previsao_vad,cirurgia_proposta:d.cirurgia_proposta,
+        tecnica_proposta:d.tecnica_proposta,updated_at:new Date().toISOString()
+    }));
+    toast('Salvo localmente','success');
+}
+
+function toggleSec(el){el.closest('.section').classList.toggle('open')}
+function toggleCond(id,show){document.getElementById(id).classList.toggle('visible',show)}
+function setRadio(name,val){const r=document.querySelector(`input[name="${name}"][value="${val}"]`);if(r)r.checked=true}
+function setChecks(name,vals){vals.forEach(v=>{const c=document.querySelector(`input[name="${name}"][value="${v}"]`);if(c)c.checked=true})}
+function novoForm(){if(confirm('Limpar e criar novo?'))limpar()}
+function limpar(){document.querySelectorAll('.form-input').forEach(i=>i.value='');document.querySelectorAll('input[type="checkbox"],input[type="radio"]').forEach(i=>i.checked=false);document.querySelectorAll('.cond').forEach(c=>c.classList.remove('visible'));currentPacienteId=null;currentPreId=null}
+function toast(msg,type){const t=document.getElementById('toast');t.textContent=msg;t.className='toast '+(type||'');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000)}
+</script>
+
+</body>
+</html>
