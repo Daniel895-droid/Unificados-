@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#581c87">
+    <title>UNIANEST - RPA</title>
+    <style>
+        :root{--bg-dark:#1a0a2e;--bg-card:#2d1b4e;--bg-hover:#3d2b5e;--text-primary:#f5f3ff;--text-secondary:#c4b5fd;--text-muted:#a78bfa;--accent:#a855f7;--accent-bg:rgba(168,85,247,0.15);--success:#22c55e;--warning:#f59e0b;--danger:#ef4444;--border:#4c1d95;--radius:12px;--radius-sm:8px;--safe-top:env(safe-area-inset-top);--safe-bottom:env(safe-area-inset-bottom)}
+        *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+        html,body{font-family:-apple-system,sans-serif;background:var(--bg-dark);color:var(--text-primary);min-height:100vh}
+        body{padding-top:var(--safe-top);padding-bottom:calc(70px + var(--safe-bottom))}
+        .splash{position:fixed;inset:0;background:linear-gradient(135deg,#581c87,#1a0a2e);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999}
+        .splash.hidden{opacity:0;visibility:hidden;transition:all .5s}
+        .splash-logo{width:140px;height:140px;background:rgba(168,85,247,.2);border-radius:35px;display:flex;align-items:center;justify-content:center;margin-bottom:24px;font-size:64px}
+        .splash-title{font-size:2rem;font-weight:800;color:#fff;letter-spacing:2px;margin-bottom:8px}
+        .splash-sub{color:rgba(255,255,255,.7);margin-bottom:40px}
+        .splash-btn{padding:16px 60px;background:var(--accent);color:#fff;font-size:1.1rem;font-weight:700;border:none;border-radius:50px;cursor:pointer}
+        .splash-btn:active{transform:scale(.95)}
+        .splash-ver{position:absolute;bottom:30px;color:rgba(255,255,255,.4);font-size:.75rem}
+        .header{position:fixed;top:0;left:0;right:0;z-index:100;background:linear-gradient(135deg,#581c87,var(--bg-dark));padding:calc(var(--safe-top)+10px) 16px 10px;color:#fff}
+        .header-content{display:flex;align-items:center;justify-content:space-between}
+        .header h1{font-size:1.125rem;font-weight:700}
+        .header-btns{display:flex;gap:8px}
+        .header-btn{width:38px;height:38px;border-radius:50%;border:none;background:rgba(255,255,255,.15);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px}
+        .header-btn:active{background:rgba(255,255,255,.25)}
+        .patient-bar{display:flex;align-items:center;gap:8px;padding:10px 16px;background:var(--bg-card);border-bottom:1px solid var(--border)}
+        .patient-name{flex:1;font-size:.9rem;font-weight:600;cursor:pointer}
+        .patient-name strong{color:var(--accent)}
+        .patient-btn{padding:6px 12px;background:var(--bg-hover);border:none;border-radius:var(--radius-sm);color:var(--text-secondary);font-size:.75rem;cursor:pointer}
+        .patient-btn.discharge{background:rgba(34,197,94,.2);color:var(--success)}
+        .intra-info{display:none;padding:8px 16px;background:#2a1540;border-bottom:1px solid var(--border);font-size:.8rem;color:var(--text-muted)}
+        .intra-info.visible{display:block}
+        .intra-info span{margin-right:12px}
+        .main{padding:calc(130px + var(--safe-top)) 12px 20px}
+        .section{background:var(--bg-card);border-radius:var(--radius);margin-bottom:16px;overflow:hidden;border:1px solid var(--border)}
+        .section-header{padding:14px 16px;background:var(--accent-bg);border-bottom:1px solid var(--border);font-weight:600;font-size:.9rem;display:flex;align-items:center;gap:10px;cursor:pointer}
+        .section-content{padding:16px}
+        .section.collapsed .section-content{display:none}
+        .form-group{margin-bottom:14px}
+        .form-label{display:block;font-size:.8rem;color:var(--text-muted);margin-bottom:6px}
+        .form-input{width:100%;padding:12px;background:var(--bg-dark);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-size:1rem}
+        .form-input:focus{outline:none;border-color:var(--accent)}
+        .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+        .radio-group{display:flex;flex-wrap:wrap;gap:8px}
+        .radio-item{position:relative}
+        .radio-item input{position:absolute;opacity:0}
+        .radio-label{display:flex;align-items:center;justify-content:center;padding:10px 14px;background:var(--bg-dark);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:.85rem;cursor:pointer}
+        .radio-item input:checked+.radio-label{background:var(--accent);border-color:var(--accent);color:#fff}
+        .time-picker{display:flex;gap:8px;align-items:center}
+        .time-input{width:60px;padding:10px;text-align:center;background:var(--bg-dark);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-size:1rem}
+        .time-sep{color:var(--text-muted);font-size:1.2rem}
+        .score-box{text-align:center;padding:16px;background:var(--accent-bg);border-radius:var(--radius-sm);margin-top:12px}
+        .score-box .label{font-size:.8rem;color:var(--text-muted);margin-bottom:4px}
+        .score-box .value{font-size:1.5rem;font-weight:700;color:var(--accent)}
+        .eva-scale{display:flex;gap:4px;flex-wrap:wrap}
+        .eva-item{position:relative}
+        .eva-item input{position:absolute;opacity:0}
+        .eva-label{width:32px;height:32px;display:flex;align-items:center;justify-content:center;background:var(--bg-dark);border:1px solid var(--border);border-radius:6px;font-size:.85rem;cursor:pointer}
+        .eva-item input:checked+.eva-label{background:var(--accent);border-color:var(--accent);color:#fff}
+        .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg-card);border-top:1px solid var(--border);padding:12px 16px calc(12px + var(--safe-bottom));display:flex;gap:12px}
+        .nav-btn{flex:1;padding:14px;border-radius:var(--radius-sm);font-size:.9rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;border:none}
+        .nav-btn.secondary{background:var(--bg-hover);color:var(--text-secondary)}
+        .nav-btn.primary{background:linear-gradient(135deg,var(--accent),#7c3aed);color:#fff}
+        .toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--bg-card);color:var(--text-primary);padding:14px 24px;border-radius:var(--radius);font-size:.9rem;opacity:0;transition:all .3s;z-index:200;border:1px solid var(--border)}
+        .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+        .toast.success{border-color:var(--success)}
+        .toast.error{border-color:var(--danger)}
+        .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:flex-end;justify-content:center;z-index:300;opacity:0;visibility:hidden;transition:all .3s}
+        .modal-overlay.show{opacity:1;visibility:visible}
+        .modal{background:var(--bg-card);border-radius:var(--radius) var(--radius) 0 0;width:100%;max-width:500px;max-height:80vh;overflow-y:auto;transform:translateY(100%);transition:transform .3s}
+        .modal-overlay.show .modal{transform:translateY(0)}
+        .modal-header{padding:16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+        .modal-title{font-weight:700}
+        .modal-close{width:32px;height:32px;border-radius:50%;border:none;background:var(--bg-dark);color:var(--text-secondary);cursor:pointer;font-size:18px}
+        .modal-body{padding:16px}
+        .pac-item{padding:14px;background:var(--bg-dark);border-radius:var(--radius-sm);margin-bottom:8px;cursor:pointer;border:1px solid var(--border)}
+        .pac-item:active{background:var(--bg-hover)}
+        .pac-item strong{display:block;margin-bottom:4px}
+        .pac-item span{font-size:.8rem;color:var(--text-muted)}
+    </style>
+</head>
+<body>
+    <div class="splash" id="splash">
+        <div class="splash-logo">🏥</div>
+        <h1 class="splash-title">UNIANEST</h1>
+        <p class="splash-sub">Recuperação Pós-Anestésica</p>
+        <button class="splash-btn" onclick="entrar()">ENTRAR</button>
+        <span class="splash-ver">v2.1.0 - Dados Compartilhados</span>
+    </div>
+    <header class="header" id="header" style="display:none">
+        <div class="header-content">
+            <h1>RPA - Recuperação</h1>
+            <div class="header-btns">
+                <button class="header-btn" onclick="location.href='index.html'">🏠</button>
+                <button class="header-btn" onclick="novoRegistro()">+</button>
+            </div>
+        </div>
+    </header>
+    <div class="patient-bar" id="patientBar" style="display:none">
+        <div class="patient-name" id="patientName" onclick="showPacientes()">👤 Selecionar Paciente</div>
+        <button class="patient-btn" onclick="showPacientes()">Trocar</button>
+        <button class="patient-btn discharge" onclick="altaRPA()">✓ Alta</button>
+    </div>
+    <!-- UNIFICAÇÃO: Info do Intra -->
+    <div class="intra-info" id="intraInfo"></div>
+
+```
+<main class="main" id="main" style="display:none">
+    <!-- Admissão -->
+    <section class="section">
+        <div class="section-header" onclick="toggleSec(this)">⏱️ Admissão</div>
+        <div class="section-content">
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Chegada RPA</label>
+                    <div class="time-picker"><input type="text" class="time-input" id="chegH" maxlength="2" placeholder="HH"><span class="time-sep">:</span><input type="text" class="time-input" id="chegM" maxlength="2" placeholder="MM"></div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Leito</label>
+                    <input type="text" class="form-input" id="leito" placeholder="Ex: 1, 2, 3...">
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Aldrete Chegada -->
+    <section class="section">
+        <div class="section-header" onclick="toggleSec(this)">📊 Aldrete-Kroulik (Chegada)</div>
+        <div class="section-content">
+            <div class="form-group"><label class="form-label">Atividade (0-2)</label>
+                <div class="radio-group"><label class="radio-item"><input type="radio" name="aldAtivC" value="0"><span class="radio-label">0</span></label><label class="radio-item"><input type="radio" name="aldAtivC" value="1"><span class="radio-label">1</span></label><label class="radio-item"><input type="radio" name="aldAtivC" value="2"><span class="radio-label">2</span></label></div>
+            </div>
+            <div class="form-group"><label class="form-label">Respiração (0-2)</label>
+                <div class="radio-group"><label class="radio-item"><input type="radio" name="aldRespC" value="0"><span class="radio-label">0</span></label><label class="radio-item"><input type="radio" name="aldRespC" value="1"><span class="radio-label">1</span></label><label class="radio-item"><input type="radio" name="aldRespC" value="2"><span class="radio-label">2</span></label></div>
+            </div>
+            <div class="form-group"><label class="form-label">Circulação (0-2)</label>
+                <div class="radio-group"><label class="radio-item"><input type="radio" name="aldCircC" value="0"><span class="radio-label">0</span></label><label class="radio-item"><input type="radio" name="aldCircC" value="1"><span class="radio-label">1</span></label><label class="radio-item"><input type="radio" name="aldCircC" value="2"><span class="radio-label">2</span></label></div>
+            </div>
+            <div class="form-group"><label class="form-label">Consciência (0-2)</label>
+                <div class="radio-group"><label class="radio-item"><input type="radio" name="aldConscC" value="0"><span class="radio-label">0</span></label><label class="radio-item"><input type="radio" name="aldConscC" value="1"><span class="radio-label">1</span></label><label class="radio-item"><input type="radio" name="aldConscC" value="2"><span class="radio-label">2</span></label></div>
+            </div>
+            <div class="form-group"><label class="form-label">SpO2 (0-2)</label>
+                <div class="radio-group"><label class="radio-item"><input type="radio" name="aldSpo2C" value="0"><span class="radio-label">0</span></label><label class="radio-item"><input type="radio" name="aldSpo2C" value="1"><span class="radio-label">1</span></label><label class="radio-item"><input type="radio" name="aldSpo2C" value="2"><span class="radio-label">2</span></label></div>
+            </div>
+            <div class="score-box"><div class="label">Total Chegada</div><div class="value" id="aldreteTotalC">--</div></div>
+        </div>
+    </section>
+    
+    <!-- Bromage -->
+    <section class="section">
+        <div class="section-header" onclick="toggleSec(this)">🦵 Bromage (Bloqueio Motor)</div>
+        <div class="section-content">
+            <div class="form-group">
+                <div class="radio-group">
+                    <label class="radio-item"><input type="radio" name="bromage" value="0"><span class="radio-label">0 - Sem bloqueio</span></label>
+                    <label class="radio-item"><input type="radio" name="bromage" value="1"><span class="radio-label">1 - Flexiona joelho</span></label>
+                    <label class="radio-item"><input type="radio" name="bromage" value="2"><span class="radio-label">2 - Flexiona tornozelo</span></label>
+                    <label class="radio-item"><input type="radio" name="bromage" value="3"><span class="radio-label">3 - Bloqueio total</span></label>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Dor EVA -->
+    <section class="section">
+        <div class="section-header" onclick="toggleSec(this)">😣 Escala de Dor (EVA)</div>
+        <div class="section-content">
+            <div class="form-group"><label class="form-label">Chegada (0-10)</label>
+                <div class="eva-scale">
+                    <label class="eva-item"><input type="radio" name="evaC" value="0"><span class="eva-label">0</span></label>
+                    <label class="eva-item"><input type="radio" name="evaC" value="1"><span class="eva-label">1</span></label>
+                    <label class="eva-item"><input type="radio" name="evaC" value="2"><span class="eva-label">2</span></label>
+                    <label class="eva-item"><input type="radio" name="evaC" value="3"><span class="eva-label">3</span></label>
+                    <label class="eva-item"><input type="radio" name="evaC" value="4"><span class="eva-label">4</span></label>
+                    <label class="eva-item"><input type="radio" name="evaC" value="5"><span class="eva-label">5</span></label>
+                    <label class="eva-item"><input type="radio" name="evaC" value="6"><span class="eva-label">6</span></label>
+                    <label class="eva-item"><input type="radio" name="evaC" value="7"><span class="eva-label">7</span></label>
+                    <label class="eva-item"><input type="radio" name="evaC" value="8"><span class="eva-label">8</span></label>
+                    <label class="eva-item"><input type="radio" name="evaC" value="9"><span class="eva-label">9</span></label>
+                    <label class="eva-item"><input type="radio" name="evaC" value="10"><span class="eva-label">10</span></label>
+                </div>
+            </div>
+            <div class="form-group"><label class="form-label">Alta (0-10)</label>
+                <div class="eva-scale">
+                    <label class="eva-item"><input type="radio" name="evaA" value="0"><span class="eva-label">0</span></label>
+                    <label class="eva-item"><input type="radio" name="evaA" value="1"><span class="eva-label">1</span></label>
+                    <label class="eva-item"><input type="radio" name="evaA" value="2"><span class="eva-label">2</span></label>
+                    <label class="eva-item"><input type="radio" name="evaA" value="3"><span class="eva-label">3</span></label>
+                    <label class="eva-item"><input type="radio" name="evaA" value="4"><span class="eva-label">4</span></label>
+                    <label class="eva-item"><input type="radio" name="evaA" value="5"><span class="eva-label">5</span></label>
+                    <label class="eva-item"><input type="radio" name="evaA" value="6"><span class="eva-label">6</span></label>
+                    <label class="eva-item"><input type="radio" name="evaA" value="7"><span class="eva-label">7</span></label>
+                    <label class="eva-item"><input type="radio" name="evaA" value="8"><span class="eva-label">8</span></label>
+                    <label class="eva-item"><input type="radio" name="evaA" value="9"><span class="eva-label">9</span></label>
+                    <label class="eva-item"><input type="radio" name="evaA" value="10"><span class="eva-label">10</span></label>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Aldrete Alta -->
+    <section class="section">
+        <div class="section-header" onclick="toggleSec(this)">📊 Aldrete-Kroulik (Alta)</div>
+        <div class="section-content">
+            <div class="form-group"><label class="form-label">Atividade (0-2)</label>
+                <div class="radio-group"><label class="radio-item"><input type="radio" name="aldAtivA" value="0"><span class="radio-label">0</span></label><label class="radio-item"><input type="radio" name="aldAtivA" value="1"><span class="radio-label">1</span></label><label class="radio-item"><input type="radio" name="aldAtivA" value="2"><span class="radio-label">2</span></label></div>
+            </div>
+            <div class="form-group"><label class="form-label">Respiração (0-2)</label>
+                <div class="radio-group"><label class="radio-item"><input type="radio" name="aldRespA" value="0"><span class="radio-label">0</span></label><label class="radio-item"><input type="radio" name="aldRespA" value="1"><span class="radio-label">1</span></label><label class="radio-item"><input type="radio" name="aldRespA" value="2"><span class="radio-label">2</span></label></div>
+            </div>
+            <div class="form-group"><label class="form-label">Circulação (0-2)</label>
+                <div class="radio-group"><label class="radio-item"><input type="radio" name="aldCircA" value="0"><span class="radio-label">0</span></label><label class="radio-item"><input type="radio" name="aldCircA" value="1"><span class="radio-label">1</span></label><label class="radio-item"><input type="radio" name="aldCircA" value="2"><span class="radio-label">2</span></label></div>
+            </div>
+            <div class="form-group"><label class="form-label">Consciência (0-2)</label>
+                <div class="radio-group"><label class="radio-item"><input type="radio" name="aldConscA" value="0"><span class="radio-label">0</span></label><label class="radio-item"><input type="radio" name="aldConscA" value="1"><span class="radio-label">1</span></label><label class="radio-item"><input type="radio" name="aldConscA" value="2"><span class="radio-label">2</span></label></div>
+            </div>
+            <div class="form-group"><label class="form-label">SpO2 (0-2)</label>
+                <div class="radio-group"><label class="radio-item"><input type="radio" name="aldSpo2A" value="0"><span class="radio-label">0</span></label><label class="radio-item"><input type="radio" name="aldSpo2A" value="1"><span class="radio-label">1</span></label><label class="radio-item"><input type="radio" name="aldSpo2A" value="2"><span class="radio-label">2</span></label></div>
+            </div>
+            <div class="score-box"><div class="label">Total Alta</div><div class="value" id="aldreteTotalA">--</div></div>
+        </div>
+    </section>
+    
+    <!-- Alta -->
+    <section class="section">
+        <div class="section-header" onclick="toggleSec(this)">🚪 Alta RPA</div>
+        <div class="section-content">
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Horário Alta</label>
+                    <div class="time-picker"><input type="text" class="time-input" id="altaH" maxlength="2" placeholder="HH"><span class="time-sep">:</span><input type="text" class="time-input" id="altaM" maxlength="2" placeholder="MM"></div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Destino</label>
+                    <select class="form-input" id="destino">
+                        <option value="">Selecione...</option>
+                        <option value="Enfermaria">Enfermaria</option>
+                        <option value="UTI">UTI</option>
+                        <option value="Casa">Casa (ambulatorial)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group"><label class="form-label">Observações</label><textarea class="form-input" rows="3" id="observacoes" placeholder="Intercorrências, medicações..."></textarea></div>
+        </div>
+    </section>
+</main>
+
+<nav class="bottom-nav" id="bottomNav" style="display:none">
+    <button class="nav-btn secondary" onclick="limpar()">🗑️ Limpar</button>
+    <button class="nav-btn primary" onclick="salvar()">💾 Salvar</button>
+</nav>
+<div class="toast" id="toast"></div>
+
+<!-- Modal Pacientes -->
+<div class="modal-overlay" id="modalPac">
+    <div class="modal">
+        <div class="modal-header"><span class="modal-title">Selecionar Paciente</span><button class="modal-close" onclick="closeModal()">×</button></div>
+        <div class="modal-body" id="pacList"></div>
+    </div>
+</div>
+```
+
+<script>
+const API_URL=localStorage.getItem('UNIANEST_API_URL')||'http://localhost:8000';
+let apiOnline=false,currentPaciente=null,currentPacienteId=null,currentRPAId=null,pacientes=[],intraData=null;
+
+function entrar(){document.getElementById('splash').classList.add('hidden');document.getElementById('header').style.display='block';document.getElementById('patientBar').style.display='flex';document.getElementById('main').style.display='block';document.getElementById('bottomNav').style.display='flex';init()}
+
+async function init(){
+    await checkAPI();
+    setupAldrete();
+    const id=localStorage.getItem('UNIANEST_PACIENTE_ID');
+    if(id){
+        if(apiOnline)await carregarPaciente(id);
+        else carregarDadosOffline(id);
+    }
+    carregarDadosIntra();
+}
+
+async function checkAPI(){
+    try{const r=await fetch(API_URL+'/health');if(r.ok)apiOnline=true}catch(e){apiOnline=false}
+}
+
+async function carregarPaciente(id){
+    try{
+        const r=await fetch(API_URL+'/pacientes/'+id);
+        if(r.ok){
+            currentPaciente=await r.json();
+            currentPacienteId=currentPaciente.id;
+            if(currentPaciente.rpa){currentRPAId=currentPaciente.rpa.id;preencherRPA(currentPaciente.rpa)}
+            renderPatientBar();
+            toast('Paciente carregado','success');
+        }
+    }catch(e){console.error(e);carregarDadosOffline(id)}
+}
+
+// UNIFICAÇÃO: Carregar dados do Intraoperatório
+function carregarDadosIntra(){
+    const stored=localStorage.getItem('UNIANEST_INTRA_PARA_RPA');
+    if(!stored)return;
+    try{
+        intraData=JSON.parse(stored);
+        const info=document.getElementById('intraInfo');
+        const parts=[];
+        if(intraData.tecnica_anestesica)parts.push(`<span>💉 ${intraData.tecnica_anestesica}</span>`);
+        if(intraData.cirurgia_realizada)parts.push(`<span>📋 ${intraData.cirurgia_realizada}</span>`);
+        if(intraData.hora_fim_anestesia)parts.push(`<span>⏱️ Fim: ${intraData.hora_fim_anestesia}</span>`);
+        if(intraData.aldrete_saida!=null)parts.push(`<span>📊 Aldrete SO: ${intraData.aldrete_saida}/10</span>`);
+        if(parts.length){
+            info.innerHTML=parts.join('');
+            info.classList.add('visible');
+        }
+        // Usar aldrete de saída como aldrete de chegada
+        if(intraData.aldrete_saida!=null){
+            // Tenta distribuir os pontos (heurística simples: 2 em cada item até atingir o total)
+            const total=intraData.aldrete_saida;
+            // Ou simplesmente não preenche automático, só mostra info
+        }
+        // Atualizar nome se não tiver
+        if(intraData.nome&&!currentPaciente){
+            currentPaciente={id:intraData.paciente_id,nome:intraData.nome,prontuario:intraData.prontuario,peso:intraData.peso};
+            currentPacienteId=intraData.paciente_id;
+            renderPatientBar();
+        }
+    }catch(e){console.error(e)}
+}
+
+// UNIFICAÇÃO: Carregar offline
+function carregarDadosOffline(id){
+    // Tentar dados do Pré
+    const stored=localStorage.getItem('UNIANEST_PACIENTE_DADOS');
+    if(stored){
+        try{
+            const dados=JSON.parse(stored);
+            currentPaciente=dados;
+            currentPacienteId=dados.id;
+            renderPatientBar();
+            toast('Carregado do cache','success');
+        }catch(e){}
+    }
+}
+
+function renderPatientBar(){
+    const el=document.getElementById('patientName');
+    if(!currentPaciente){el.innerHTML='👤 Selecionar Paciente';return}
+    const p=currentPaciente;
+    const info=[];
+    if(p.peso)info.push(p.peso+'kg');
+    if(p.idade)info.push(p.idade+'a');
+    el.innerHTML=`<strong>${p.nome||'-'}</strong>${info.length?' <span style="font-size:.75rem;color:var(--text-muted)">'+info.join(' • ')+'</span>':''}`;
+}
+
+function preencherRPA(r){
+    if(r.chegada_h)document.getElementById('chegH').value=r.chegada_h;
+    if(r.chegada_m)document.getElementById('chegM').value=r.chegada_m;
+    if(r.leito)document.getElementById('leito').value=r.leito;
+    if(r.bromage)setRadio('bromage',String(r.bromage));
+    if(r.eva_chegada!=null)setRadio('evaC',String(r.eva_chegada));
+    if(r.eva_alta!=null)setRadio('evaA',String(r.eva_alta));
+    if(r.destino)document.getElementById('destino').value=r.destino;
+    if(r.observacoes)document.getElementById('observacoes').value=r.observacoes;
+}
+
+function coletarDados(){
+    const gV=id=>document.getElementById(id)?.value||'';
+    const gR=n=>document.querySelector(`input[name="${n}"]:checked`)?.value||'';
+    return{
+        chegada_h:gV('chegH'),chegada_m:gV('chegM'),leito:gV('leito'),
+        aldrete_chegada_ativ:+gR('aldAtivC')||0,aldrete_chegada_resp:+gR('aldRespC')||0,aldrete_chegada_circ:+gR('aldCircC')||0,
+        aldrete_chegada_consc:+gR('aldConscC')||0,aldrete_chegada_spo2:+gR('aldSpo2C')||0,
+        bromage:+gR('bromage')||0,
+        eva_chegada:+gR('evaC')||null,eva_alta:+gR('evaA')||null,
+        aldrete_alta_ativ:+gR('aldAtivA')||0,aldrete_alta_resp:+gR('aldRespA')||0,aldrete_alta_circ:+gR('aldCircA')||0,
+        aldrete_alta_consc:+gR('aldConscA')||0,aldrete_alta_spo2:+gR('aldSpo2A')||0,
+        alta_h:gV('altaH'),alta_m:gV('altaM'),destino:gV('destino'),observacoes:gV('observacoes')
+    }
+}
+
+async function salvar(){
+    const d=coletarDados();
+    if(!currentPacienteId){toast('Selecione um paciente','error');return}
+    
+    const aldreteTotalC=d.aldrete_chegada_ativ+d.aldrete_chegada_resp+d.aldrete_chegada_circ+d.aldrete_chegada_consc+d.aldrete_chegada_spo2;
+    const aldreteTotalA=d.aldrete_alta_ativ+d.aldrete_alta_resp+d.aldrete_alta_circ+d.aldrete_alta_consc+d.aldrete_alta_spo2;
+    
+    if(apiOnline){
+        try{
+            const rpaData={paciente_id:currentPacienteId,...d,aldrete_chegada_total:aldreteTotalC,aldrete_alta_total:aldreteTotalA};
+            let r;
+            if(currentRPAId){r=await fetch(API_URL+'/rpa/'+currentPacienteId,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(rpaData)})}
+            else{r=await fetch(API_URL+'/rpa',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(rpaData)})}
+            if(r.ok){const rpa=await r.json();currentRPAId=rpa.id;toast('Salvo!','success')}else throw new Error('Erro')
+        }catch(e){toast('Erro: '+e.message,'error');salvarLocal(d,aldreteTotalC,aldreteTotalA)}
+    }else{salvarLocal(d,aldreteTotalC,aldreteTotalA)}
+}
+
+function salvarLocal(d,aldreteTotalC,aldreteTotalA){
+    d.id=currentRPAId||Date.now();d.paciente_id=currentPacienteId;
+    d.aldrete_chegada_total=aldreteTotalC;d.aldrete_alta_total=aldreteTotalA;d._local=true;
+    const lista=JSON.parse(localStorage.getItem('UNIANEST_RPA_LOCAL')||'[]');
+    const idx=lista.findIndex(r=>r.id===d.id);
+    if(idx>=0)lista[idx]=d;else lista.unshift(d);
+    localStorage.setItem('UNIANEST_RPA_LOCAL',JSON.stringify(lista));
+    toast('Salvo localmente','success');
+}
+
+function setupAldrete(){
+    ['aldAtivC','aldRespC','aldCircC','aldConscC','aldSpo2C'].forEach(name=>{
+        document.querySelectorAll(`input[name="${name}"]`).forEach(r=>r.addEventListener('change',()=>calcAldrete('C')));
+    });
+    ['aldAtivA','aldRespA','aldCircA','aldConscA','aldSpo2A'].forEach(name=>{
+        document.querySelectorAll(`input[name="${name}"]`).forEach(r=>r.addEventListener('change',()=>calcAldrete('A')));
+    });
+}
+
+function calcAldrete(tipo){
+    const gR=n=>+(document.querySelector(`input[name="${n}"]:checked`)?.value||0);
+    const total=gR('aldAtiv'+tipo)+gR('aldResp'+tipo)+gR('aldCirc'+tipo)+gR('aldConsc'+tipo)+gR('aldSpo2'+tipo);
+    document.getElementById('aldreteTotal'+tipo).textContent=total+'/10';
+}
+
+async function showPacientes(){
+    document.getElementById('modalPac').classList.add('show');
+    const list=document.getElementById('pacList');
+    list.innerHTML='<p style="text-align:center;color:var(--text-muted)">Carregando...</p>';
+    if(apiOnline){
+        try{const r=await fetch(API_URL+'/pacientes?limit=20');pacientes=await r.json()}catch(e){pacientes=[]}
+    }else{pacientes=JSON.parse(localStorage.getItem('UNIANEST_PACIENTES')||'[]')}
+    if(!pacientes.length){list.innerHTML='<p style="text-align:center;color:var(--text-muted)">Nenhum paciente</p>';return}
+    list.innerHTML=pacientes.map(p=>`<div class="pac-item" onclick="selPac(${p.id})"><strong>${p.nome||'-'}</strong><span>${p.prontuario||'-'} • ${p.peso?p.peso+'kg':'-'}</span></div>`).join('');
+}
+
+async function selPac(id){
+    closeModal();
+    localStorage.setItem('UNIANEST_PACIENTE_ID',id);
+    if(apiOnline)await carregarPaciente(id);
+    else carregarDadosOffline(id);
+}
+
+function closeModal(){document.getElementById('modalPac').classList.remove('show')}
+function toggleSec(el){el.closest('.section').classList.toggle('collapsed')}
+function setRadio(name,val){const r=document.querySelector(`input[name="${name}"][value="${val}"]`);if(r)r.checked=true}
+function novoRegistro(){if(confirm('Limpar e criar novo?'))limpar()}
+function limpar(){document.querySelectorAll('.form-input').forEach(i=>{if(i.tagName==='SELECT')i.selectedIndex=0;else i.value=''});document.querySelectorAll('.time-input').forEach(i=>i.value='');document.querySelectorAll('input[type="radio"]').forEach(i=>i.checked=false);document.getElementById('aldreteTotalC').textContent='--';document.getElementById('aldreteTotalA').textContent='--';document.getElementById('intraInfo').classList.remove('visible');currentRPAId=null}
+function altaRPA(){salvar();toast('Alta registrada!','success')}
+function toast(msg,type){const t=document.getElementById('toast');t.textContent=msg;t.className='toast '+(type||'');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000)}
+document.getElementById('modalPac').onclick=e=>{if(e.target.classList.contains('modal-overlay'))closeModal()}
+</script>
+
+</body>
+</html>
