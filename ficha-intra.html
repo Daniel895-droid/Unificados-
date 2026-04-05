@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<title>FICHA TESTE</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0f1a;color:#fff;font-family:sans-serif}
+#app{padding:10px}
+h1{color:#00ccff;font-size:16px;margin-bottom:10px}
+table{border-collapse:collapse;width:100%}
+th,td{border:1px solid #2a3f6b;padding:8px;text-align:center;font-size:12px}
+th{background:#141e33;color:#a0b4d8}
+td{background:#0f1726;color:#e8edf5;cursor:pointer}
+td:active{background:#00ccff}
+.status{margin-top:10px;padding:10px;background:#141e33;border-radius:8px;font-size:11px}
+</style>
+</head>
+<body>
+<div id="app">
+<h1>UNIANEST - TESTE MINIMO</h1>
+<div id="wrap"></div>
+<div class="status" id="status">Carregando...</div>
+</div>
+<script>
+var ROWS = ["O2","Sevo","SpO2","PAS","PAD","FC","Eventos"];
+var SLOTS = 5;
+
+function render() {
+var w = document.getElementById(“wrap”);
+var h = “<table><thead><tr><th>Param</th>”;
+for (var i = 0; i < SLOTS; i++) {
+h += “<th>T” + i + “</th>”;
+}
+h += “</tr></thead><tbody>”;
+for (var r = 0; r < ROWS.length; r++) {
+h += “<tr><td>” + ROWS[r] + “</td>”;
+for (var i = 0; i < SLOTS; i++) {
+h += “<td onclick="tap(’” + ROWS[r] + “’,” + i + “)">-</td>”;
+}
+h += “</tr>”;
+}
+h += “</tbody></table>”;
+w.innerHTML = h;
+document.getElementById(“status”).textContent = “Tabela renderizada! “ + ROWS.length + “ linhas x “ + SLOTS + “ colunas”;
+}
+
+function tap(row, slot) {
+document.getElementById(“status”).textContent = “Clicou: “ + row + “ no slot “ + slot;
+}
+
+render();
+</script>
+
+</body>
+</html>
